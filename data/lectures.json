@@ -1,0 +1,58 @@
+[
+  {
+    "timestamp": "2026-05-22T14:30:35",
+    "temperature_c": 25.125
+  },
+  {
+    "timestamp": "2026-05-22T14:40:34",
+    "temperature_c": 25.062
+  },
+  {
+    "timestamp": "2026-05-22T14:41:07",
+    "temperature_c": 25.062
+  },
+  {
+    "timestamp": "2026-05-22T14:41:39",
+    "temperature_c": 25.062
+  },
+  {
+    "timestamp": "2026-05-22T14:42:11",
+    "temperature_c": 25.062
+  },
+  {
+    "timestamp": "2026-05-22T14:42:44",
+    "temperature_c": 25.062
+  },
+  {
+    "timestamp": "2026-05-22T14:43:16",
+    "temperature_c": 25.062
+  },
+  {
+    "timestamp": "2026-05-22T14:43:49",
+    "temperature_c": 25.125
+  },
+  {
+    "timestamp": "2026-05-22T14:44:22",
+    "temperature_c": 25.125
+  },
+  {
+    "timestamp": "2026-05-22T14:44:54",
+    "temperature_c": 25.062
+  },
+  {
+    "timestamp": "2026-05-22T14:45:26",
+    "temperature_c": 25.062
+  },
+  {
+    "timestamp": "2026-05-22T14:45:59",
+    "temperature_c": 25.125
+  },
+  {
+    "timestamp": "2026-05-22T14:46:31",
+    "temperature_c": 25.125
+  },
+  {
+    "timestamp": "2026-05-22T14:47:37",
+    "temperature_c": 25.125
+  }
+]
