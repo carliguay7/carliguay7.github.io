@@ -1,9 +1,83 @@
-<!DOCTYPE html> <html lang="es"> <head> <meta charset="UTF-8"> <title>Temperatura Raspberry Pi - DS18B20</title> <style> body { font-family: Arial, sans-serif; margin: 20px; } h1 { margin-bottom: 10px; } table { border-collapse: collapse; width: 100%; max-width: 700px; } th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; } th { background-color: #f0f0f0; } #error { color: red; margin-top: 10px; } </style> </head> <body> <h1>Lecturas de temperatura (DS18B20)</h1> <p>Datos enviados automáticamente desde la Raspberry Pi y guardados en <code>lectures.json</code>.</p> <button onclick="cargarDatos()">Actualizar datos</button> <table id="tabla"> <thead> <tr> <th>Fecha y hora</th> <th>Temperatura (°C)</th> </tr> </thead> <tbody> <!-- Filas generadas por JavaScript --> </tbody> </table> <div id="error"></div> <script> // URL del JSON en GitHub Pages const URL_JSON = "data/lectures.json"; async function cargarDatos() { const tbody = document.querySelector("#tabla tbody"); const errorDiv = document.getElementById("error"); tbody.innerHTML = ""; errorDiv.textContent = ""; try { const res = await fetch(URL_JSON + "?t=" + Date.now()); // evitar caché if (!res.ok) { throw new Error("Error HTTP " + res.status); } const datos = await res.json(); if (!Array.isArray(datos) || datos.length === 0) { tbody.innerHTML = "<tr><td colspan='2'>No hay datos todavía.</td></tr>"; return; } datos.forEach(registro => { const tr = document.createElement("tr"); const tdFecha = document.createElement("td"); tdFecha.textContent = registro.timestamp || ""; const tdTemp = document.createElement("td"); tdTemp.textContent = (registro.temperature_c !== undefined) ? registro.temperature_c + " °C" : ""; tr.appendChild(tdFecha); tr.appendChild(tdTemp); tbody.appendChild(tr); }); } catch (e) { console.error(e); errorDiv.textContent = "No se han podido cargar los datos del JSON."; } } // Cargar automáticamente al abrir la página cargarDatos(); </script> </body> </html>
-  });
-}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Temperatura Raspberry Pi - DS18B20</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { margin-bottom: 10px; }
+    table { border-collapse: collapse; width: 100%; max-width: 700px; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
+    th { background-color: #f0f0f0; }
+    #error { color: red; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Lecturas de temperatura (DS18B20)</h1>
+  <p>Datos enviados automáticamente desde la Raspberry Pi y guardados en <code>lectures.json</code>.</p>
 
-cargar();
-</script>
+  <button onclick="cargarDatos()">Actualizar datos</button>
 
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th>Fecha y hora</th>
+        <th>Temperatura (°C)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Filas generadas por JavaScript -->
+    </tbody>
+  </table>
+
+  <div id="error"></div>
+
+  <script>
+    // URL del JSON en GitHub Pages
+    const URL_JSON = "data/lectures.json";
+
+    async function cargarDatos() {
+      const tbody = document.querySelector("#tabla tbody");
+      const errorDiv = document.getElementById("error");
+      tbody.innerHTML = "";
+      errorDiv.textContent = "";
+
+      try {
+        const res = await fetch(URL_JSON + "?t=" + Date.now()); // evitar caché
+        if (!res.ok) {
+          throw new Error("Error HTTP " + res.status);
+        }
+
+        const datos = await res.json();
+
+        if (!Array.isArray(datos) || datos.length === 0) {
+          tbody.innerHTML = "<tr><td colspan='2'>No hay datos todavía.</td></tr>";
+          return;
+        }
+
+        datos.forEach(registro => {
+          const tr = document.createElement("tr");
+
+          const tdFecha = document.createElement("td");
+          tdFecha.textContent = registro.timestamp || "";
+
+          const tdTemp = document.createElement("td");
+          tdTemp.textContent = (registro.temperature_c !== undefined)
+            ? registro.temperature_c + " °C"
+            : "";
+
+          tr.appendChild(tdFecha);
+          tr.appendChild(tdTemp);
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error(e);
+        errorDiv.textContent = "No se han podido cargar los datos del JSON.";
+      }
+    }
+
+    // Cargar automáticamente al abrir la página
+    cargarDatos();
+  </script>
 </body>
 </html>
