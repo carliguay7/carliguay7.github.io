@@ -1,83 +1,203 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="ca">
 <head>
   <meta charset="UTF-8">
-  <title>Temperatura Raspberry Pi - DS18B20</title>
+  <title>Lectures de temperatura</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { margin-bottom: 10px; }
-    table { border-collapse: collapse; width: 100%; max-width: 700px; }
-    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
-    th { background-color: #f0f0f0; }
-    #error { color: red; margin-top: 10px; }
+    body { font-family: Arial; margin: 20px; }
+    h1 { color: #333; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #eee; }
+    section { margin-top: 40px; }
+    canvas { margin-top: 20px; }
   </style>
 </head>
+
 <body>
-  <h1>Lecturas de temperatura (DS18B20)</h1>
-  <p>Datos enviados automáticamente desde la Raspberry Pi y guardados en <code>lectures.json</code>.</p>
 
-  <button onclick="cargarDatos()">Actualizar datos</button>
+<h1>Lectures de temperatura (DS18B20)</h1>
+<p>Dades enviades automàticament des de la Raspberry Pi i guardades en lectures.json.</p>
 
-  <table id="tabla">
-    <thead>
-      <tr>
-        <th>Fecha y hora</th>
-        <th>Temperatura (°C)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Filas generadas por JavaScript -->
-    </tbody>
-  </table>
+<button onclick="cargar()">Actualizar dades</button>
 
-  <div id="error"></div>
+<!-- TAULA PRINCIPAL -->
+<table id="taula">
+  <thead>
+    <tr>
+      <th>Data i hora</th>
+      <th>Temperatura (°C)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td colspan="2">Carregant dades...</td></tr>
+  </tbody>
+</table>
 
-  <script>
-    // URL del JSON en GitHub Pages
-    const URL_JSON = "data/lectures.json";
+<!-- ÚLTIMES LECTURES -->
+<section>
+  <h2>Últimes lectures</h2>
+  <ul id="ultimas"></ul>
+</section>
 
-    async function cargarDatos() {
-      const tbody = document.querySelector("#tabla tbody");
-      const errorDiv = document.getElementById("error");
-      tbody.innerHTML = "";
-      errorDiv.textContent = "";
+<!-- LECTURES D'AVUI -->
+<section>
+  <h2>Lectures d'avui</h2>
+  <ul id="hoy"></ul>
+</section>
 
-      try {
-        const res = await fetch(URL_JSON + "?t=" + Date.now()); // evitar caché
-        if (!res.ok) {
-          throw new Error("Error HTTP " + res.status);
-        }
+<!-- ESTADÍSTIQUES DEL MES -->
+<section>
+  <h2>Estadístiques del mes</h2>
+  <ul id="mes"></ul>
+</section>
 
-        const datos = await res.json();
+<!-- GRÀFIC -->
+<section>
+  <h2>Gràfic de temperatures</h2>
+  <canvas id="graficoTemp" width="400" height="200"></canvas>
+</section>
 
-        if (!Array.isArray(datos) || datos.length === 0) {
-          tbody.innerHTML = "<tr><td colspan='2'>No hay datos todavía.</td></tr>";
-          return;
-        }
+<script>
+const URL_JSON = "https://carliguay7.github.io/proyectoeraquel/data/lectures.json";
 
-        datos.forEach(registro => {
-          const tr = document.createElement("tr");
+async function cargar() {
+  try {
+    const res = await fetch(URL_JSON + "?t=" + Date.now());
+    if (!res.ok) throw new Error("Error HTTP " + res.status);
 
-          const tdFecha = document.createElement("td");
-          tdFecha.textContent = registro.timestamp || "";
-
-          const tdTemp = document.createElement("td");
-          tdTemp.textContent = (registro.temperature_c !== undefined)
-            ? registro.temperature_c + " °C"
-            : "";
-
-          tr.appendChild(tdFecha);
-          tr.appendChild(tdTemp);
-          tbody.appendChild(tr);
-        });
-      } catch (e) {
-        console.error(e);
-        errorDiv.textContent = "No se han podido cargar los datos del JSON.";
-      }
+    const datos = await res.json();
+    if (!Array.isArray(datos) || datos.length === 0) {
+      document.querySelector("#taula tbody").innerHTML =
+        "<tr><td colspan='2'>No hi ha dades encara.</td></tr>";
+      return;
     }
 
-    // Cargar automáticamente al abrir la página
-    cargarDatos();
-  </script>
+    mostrarTabla(datos);
+    mostrarUltimas(datos);
+    mostrarHoy(datos);
+    mostrarMes(datos);
+    mostrarGrafico(datos);
+
+  } catch (e) {
+    document.querySelector("#taula tbody").innerHTML =
+      "<tr><td colspan='2'>No s'han pogut carregar les dades del JSON.</td></tr>";
+  }
+}
+
+function mostrarTabla(datos) {
+  const tbody = document.querySelector("#taula tbody");
+  tbody.innerHTML = "";
+
+  datos.forEach(registro => {
+    const tr = document.createElement("tr");
+
+    const tdFecha = document.createElement("td");
+    tdFecha.textContent = registro.timestamp;
+
+    const tdTemp = document.createElement("td");
+    tdTemp.textContent = registro.temperature_c + " °C";
+
+    tr.appendChild(tdFecha);
+    tr.appendChild(tdTemp);
+    tbody.appendChild(tr);
+  });
+}
+
+function mostrarUltimas(datos) {
+  const ul = document.querySelector("#ultimas");
+  ul.innerHTML = "";
+
+  const ultimas = datos.slice(-5);
+
+  ultimas.forEach(r => {
+    const li = document.createElement("li");
+    li.textContent = `${r.timestamp} → ${r.temperature_c} °C`;
+    ul.appendChild(li);
+  });
+}
+
+function mostrarHoy(datos) {
+  const ul = document.querySelector("#hoy");
+  ul.innerHTML = "";
+
+  const hoy = new Date().toISOString().slice(0, 10);
+
+  const filtradas = datos.filter(r => r.timestamp.startsWith(hoy));
+
+  if (filtradas.length === 0) {
+    ul.innerHTML = "<li>No hi ha lectures d'avui.</li>";
+    return;
+  }
+
+  filtradas.forEach(r => {
+    const li = document.createElement("li");
+    li.textContent = `${r.timestamp} → ${r.temperature_c} °C`;
+    ul.appendChild(li);
+  });
+}
+
+function mostrarMes(datos) {
+  const ul = document.querySelector("#mes");
+  ul.innerHTML = "";
+
+  const ahora = new Date();
+  const mesActual = ahora.toISOString().slice(0, 7);
+
+  const filtradas = datos.filter(r => r.timestamp.startsWith(mesActual));
+
+  if (filtradas.length === 0) {
+    ul.innerHTML = "<li>No hi ha lectures aquest mes.</li>";
+    return;
+  }
+
+  const temps = filtradas.map(r => r.temperature_c);
+  const min = Math.min(...temps);
+  const max = Math.max(...temps);
+  const avg = (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(2);
+
+  ul.innerHTML = `
+    <li>Lectures aquest mes: ${filtradas.length}</li>
+    <li>Temperatura mínima: ${min} °C</li>
+    <li>Temperatura màxima: ${max} °C</li>
+    <li>Mitjana: ${avg} °C</li>
+  `;
+}
+
+function mostrarGrafico(datos) {
+  const ctx = document.getElementById("graficoTemp").getContext("2d");
+
+  const labels = datos.map(r => r.timestamp);
+  const temps = datos.map(r => r.temperature_c);
+
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Temperatura (°C)",
+        data: temps,
+        borderColor: "red",
+        borderWidth: 2,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: { display: false },
+        y: { beginAtZero: false }
+      }
+    }
+  });
+}
+
+cargar();
+</script>
+
 </body>
 </html>
